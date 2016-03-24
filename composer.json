@@ -1,0 +1,17 @@
+{
+  "require": {
+    "phpunit/phpunit": "5.*"
+  },
+  "autoload": {
+    "psr-4": {
+      "JeffLi\\ThoughtWorks\\": "src",
+      "JeffLi\\ThoughtWorks\\Test\\": "tests"
+    }
+  },
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://packagist.phpcomposer.com"
+    }
+  }
+}
