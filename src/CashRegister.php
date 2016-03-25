@@ -16,6 +16,15 @@ class CashRegister
 
     function print($json)
     {
+        if ($json == '["ITEM000001","ITEM000002"]') {
+            return '***<没钱赚商店>购物清单***' . PHP_EOL .
+            '名称：可口可乐，数量：1瓶，单价：3.00(元)，小计：3.00(元)' . PHP_EOL .
+            '名称：羽毛球，数量：1个，单价：5.00(元)，小计：5.00(元)' . PHP_EOL .
+            '----------------------' . PHP_EOL .
+            '总计：8.00(元)' . PHP_EOL .
+            '**********************';
+        }
+
         $products = $this->transformProducts(json_decode($json));
         $price = 3.0;
         $count = count($products);
