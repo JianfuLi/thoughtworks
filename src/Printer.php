@@ -14,13 +14,22 @@ class Printer
     const ITEM_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)';
     const SUM_TEMPLATE = '总计：%.2f(元)';
 
-    function print($json)
+    protected $groups = [];
+
+
+    function append($json)
     {
         $codes = $this->transformCodes(json_decode($json));
-        $groups = $this->groupByCode($codes);
+        $groups = $this->groupByCodes($codes);
+        $this->mergeCodes($groups);
+    }
+
+
+    function print()
+    {
         $output = ['***<没钱赚商店>购物清单***'];
         $total = 0.0;
-        foreach ($groups as $code => $count) {
+        foreach ($this->groups as $code => $count) {
             $product = ProductShelf::get($code);
             $output[] = sprintf(self::ITEM_TEMPLATE,
                 $product->name,
@@ -38,7 +47,18 @@ class Printer
         return implode(PHP_EOL, $output);
     }
 
-    function groupByCode(array $codes)
+    protected function mergeCodes(array $groups)
+    {
+        foreach ($groups as $code => $count) {
+            if (array_key_exists($code, $this->groups)) {
+                $this->groups[$code] = $this->groups[$code] + $count;
+            } else {
+                $this->groups[$code] = $count;
+            }
+        }
+    }
+
+    protected function groupByCodes(array $codes)
     {
         $result = [];
         array_walk($codes, function ($code) use (&$result) {
@@ -51,7 +71,7 @@ class Printer
         return $result;
     }
 
-    function transformCodes(array $items)
+    protected function transformCodes(array $items)
     {
         $products = [];
         array_walk($items, function ($item) use (&$products) {
