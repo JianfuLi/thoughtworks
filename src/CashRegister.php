@@ -11,32 +11,25 @@ namespace JeffLi\ThoughtWorks;
 
 class CashRegister
 {
+    const ITEM_TEMPLATE = '名称：可口可乐，数量：%d瓶，单价：%.2f(元)，小计：%.2f(元)';
+    const SUM_TEMPLATE = '总计：%s(元)';
+
     function print($json)
     {
-        if ($json == "['ITEM000001','ITEM000001','ITEM000001']") {
-            return <<<EOT
-***<没钱赚商店>购物清单***
-名称：可口可乐，数量：3瓶，单价：9.00(元)，小计：9.00(元)
-----------------------
-总计：9.00(元)
-**********************
-EOT;
-        }
-        if ($json == "['ITEM000001','ITEM000001']") {
-            return <<<EOT
-***<没钱赚商店>购物清单***
-名称：可口可乐，数量：2瓶，单价：6.00(元)，小计：6.00(元)
-----------------------
-总计：6.00(元)
-**********************
-EOT;
-        }
-        return <<<EOT
-***<没钱赚商店>购物清单***
-名称：可口可乐，数量：1瓶，单价：3.00(元)，小计：3.00(元)
-----------------------
-总计：3.00(元)
-**********************
-EOT;
+        $items = json_decode($json);
+        $price = 3.0;
+        $count = count($items);
+        $result = ['***<没钱赚商店>购物清单***'];
+        $result[] = sprintf(self::ITEM_TEMPLATE,
+            $count,
+            $price,
+            $price * $count
+        );
+        $result[] = '----------------------';
+        $result[] = sprintf(self::SUM_TEMPLATE,
+            number_format($price * $count, 2));
+        $result[] = '**********************';
+
+        return implode(PHP_EOL, $result);
     }
 }
