@@ -11,48 +11,53 @@ namespace JeffLi\ThoughtWorks;
 
 class CashRegister
 {
-    const ITEM_TEMPLATE = '名称：可口可乐，数量：%d瓶，单价：%.2f(元)，小计：%.2f(元)';
-    const SUM_TEMPLATE = '总计：%s(元)';
+    const ITEM_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)';
+    const SUM_TEMPLATE = '总计：%.2f(元)';
 
     function print($json)
     {
-        if ($json == '["ITEM000001","ITEM000002","ITEM000003"]') {
-            return '***<没钱赚商店>购物清单***' . PHP_EOL .
-            '名称：可口可乐，数量：1瓶，单价：3.00(元)，小计：3.00(元)' . PHP_EOL .
-            '名称：羽毛球，数量：1个，单价：5.00(元)，小计：5.00(元)' . PHP_EOL .
-            '名称：苹果，数量：1斤，单价：5.50(元)，小计：5.50(元)' . PHP_EOL .
-            '----------------------' . PHP_EOL .
-            '总计：13.50(元)' . PHP_EOL .
-            '**********************';
+        $shelf = [
+            'ITEM000001' => ['可口可乐', '瓶', 3.0],
+            'ITEM000002' => ['羽毛球', '个', 5.0],
+            'ITEM000003' => ['苹果', '斤', 5.5],
+        ];
+        $codes = $this->transformCodes(json_decode($json));
+        $groups = $this->groupByCode($codes);
+
+        $output = ['***<没钱赚商店>购物清单***'];
+        $total = 0.0;
+        foreach ($groups as $code => $count) {
+            list($name, $unit, $price) = $shelf[$code];
+            $output[] = sprintf(self::ITEM_TEMPLATE,
+                $name,
+                $count,
+                $unit,
+                $price,
+                $price * $count
+            );
+            $total += $price * $count;
         }
+        $output[] = '----------------------';
+        $output[] = sprintf(self::SUM_TEMPLATE, $total);
+        $output[] = '**********************';
 
-        if ($json == '["ITEM000001","ITEM000002"]') {
-            return '***<没钱赚商店>购物清单***' . PHP_EOL .
-            '名称：可口可乐，数量：1瓶，单价：3.00(元)，小计：3.00(元)' . PHP_EOL .
-            '名称：羽毛球，数量：1个，单价：5.00(元)，小计：5.00(元)' . PHP_EOL .
-            '----------------------' . PHP_EOL .
-            '总计：8.00(元)' . PHP_EOL .
-            '**********************';
-        }
-
-        $products = $this->transformProducts(json_decode($json));
-        $price = 3.0;
-        $count = count($products);
-        $result = ['***<没钱赚商店>购物清单***'];
-        $result[] = sprintf(self::ITEM_TEMPLATE,
-            $count,
-            $price,
-            $price * $count
-        );
-        $result[] = '----------------------';
-        $result[] = sprintf(self::SUM_TEMPLATE,
-            number_format($price * $count, 2));
-        $result[] = '**********************';
-
-        return implode(PHP_EOL, $result);
+        return implode(PHP_EOL, $output);
     }
 
-    function transformProducts($items)
+    function groupByCode(array $codes)
+    {
+        $result = [];
+        array_walk($codes, function ($code) use (&$result) {
+            if (array_key_exists($code, $result)) {
+                $result[$code] = $result[$code] + 1;
+            } else {
+                $result[$code] = 1;
+            }
+        });
+        return $result;
+    }
+
+    function transformCodes(array $items)
     {
         $products = [];
         array_walk($items, function ($item) use (&$products) {
