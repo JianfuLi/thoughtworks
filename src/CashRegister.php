@@ -16,20 +16,7 @@ class CashRegister
 
     function print($json)
     {
-        $items = json_decode($json);
-        $products = [];
-        array_walk($items, function ($item) use (&$products) {
-            $flags = explode('-', $item);
-            if (count($flags) > 1) {
-                $times = $flags[1];
-                do {
-                    $products[] = $flags[0];
-                    $times--;
-                } while ($times > 0);
-            } else {
-                $products[] = $item;
-            }
-        });
+        $products = $this->transformProducts(json_decode($json));
         $price = 3.0;
         $count = count($products);
         $result = ['***<没钱赚商店>购物清单***'];
@@ -44,5 +31,23 @@ class CashRegister
         $result[] = '**********************';
 
         return implode(PHP_EOL, $result);
+    }
+
+    function transformProducts($items)
+    {
+        $products = [];
+        array_walk($items, function ($item) use (&$products) {
+            $flags = explode('-', $item);
+            if (count($flags) > 1) {
+                $times = $flags[1];
+                do {
+                    $products[] = $flags[0];
+                    $times--;
+                } while ($times > 0);
+            } else {
+                $products[] = $item;
+            }
+        });
+        return $products;
     }
 }
