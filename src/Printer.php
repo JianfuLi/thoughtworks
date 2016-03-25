@@ -9,33 +9,27 @@
 namespace JeffLi\ThoughtWorks;
 
 
-class CashRegister
+class Printer
 {
     const ITEM_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)';
     const SUM_TEMPLATE = '总计：%.2f(元)';
 
     function print($json)
     {
-        $shelf = [
-            'ITEM000001' => ['可口可乐', '瓶', 3.0],
-            'ITEM000002' => ['羽毛球', '个', 5.0],
-            'ITEM000003' => ['苹果', '斤', 5.5],
-        ];
         $codes = $this->transformCodes(json_decode($json));
         $groups = $this->groupByCode($codes);
-
         $output = ['***<没钱赚商店>购物清单***'];
         $total = 0.0;
         foreach ($groups as $code => $count) {
-            list($name, $unit, $price) = $shelf[$code];
+            $product = ProductShelf::get($code);
             $output[] = sprintf(self::ITEM_TEMPLATE,
-                $name,
+                $product->name,
                 $count,
-                $unit,
-                $price,
-                $price * $count
+                $product->unit,
+                $product->price,
+                $product->price * $count
             );
-            $total += $price * $count;
+            $total += $product->price * $count;
         }
         $output[] = '----------------------';
         $output[] = sprintf(self::SUM_TEMPLATE, $total);

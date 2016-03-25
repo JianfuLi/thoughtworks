@@ -8,13 +8,13 @@
 
 namespace JeffLi\ThoughtWorks\Test;
 
-use JeffLi\ThoughtWorks\CashRegister;
+use JeffLi\ThoughtWorks\Printer;
 
-class CashRegisterTest extends \PHPUnit_Framework_TestCase
+class PrinterTest extends \PHPUnit_Framework_TestCase
 {
     function testPrintSingleProduct()
     {
-        $cashRegister = new CashRegister();
+        $cashRegister = new Printer();
 
         $this->assertEquals(
             '***<没钱赚商店>购物清单***' . PHP_EOL .
@@ -56,7 +56,7 @@ class CashRegisterTest extends \PHPUnit_Framework_TestCase
 
     function testPrintMultiProduct()
     {
-        $cashRegister = new CashRegister();
+        $cashRegister = new Printer();
 
         $this->assertEquals(
             '***<没钱赚商店>购物清单***' . PHP_EOL .
