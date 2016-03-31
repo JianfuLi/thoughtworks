@@ -9,12 +9,31 @@
 namespace JeffLi\ThoughtWorks;
 
 
+/**
+ * Class Product
+ * @package JeffLi\ThoughtWorks
+ */
 class Product
 {
+    /**
+     * @var string 名称
+     */
     public $name;
+    /**
+     * @var string 单位
+     */
     public $unit;
+    /**
+     * @var string 代码
+     */
     public $code;
+    /**
+     * @var string 分类
+     */
     public $type;
+    /**
+     * @var float 价格
+     */
     public $price;
 
     /**

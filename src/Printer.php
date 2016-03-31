@@ -8,19 +8,23 @@
 
 namespace JeffLi\ThoughtWorks;
 
-
 use JeffLi\ThoughtWorks\Strategy\BuyGetFreeStrategy;
-use JeffLi\ThoughtWorks\Strategy\DefaultStrategy;
 use JeffLi\ThoughtWorks\Strategy\StrategyInterface;
+use JeffLi\ThoughtWorks\Strategy\DefaultStrategy;
 
+/**
+ * Class Printer
+ * @package JeffLi\ThoughtWorks
+ */
 class Printer
 {
-    const ITEM_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)';
-    const BUY_TWO_GET_ONE_FREE_TEMPLATE = '名称：%s，数量：%d%s';
-    const BUY_95_OFF_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)，节省%.2f(元)';
-    const SUM_TEMPLATE = '总计：%.2f(元)';
-
+    /**
+     * @var array
+     */
     protected $groups = [];
+    /**
+     * @var array
+     */
     protected $strategies = [];
 
     /**
@@ -31,11 +35,17 @@ class Printer
         $this->strategies[] = new DefaultStrategy();
     }
 
+    /**
+     * @param StrategyInterface $strategy
+     */
     function addStrategy(StrategyInterface $strategy)
     {
         array_unshift($this->strategies, $strategy);
     }
 
+    /**
+     * @param string $json
+     */
     function append($json)
     {
         $codes = $this->transformCodes(json_decode($json));
@@ -43,29 +53,80 @@ class Printer
         $this->mergeCodes($groups);
     }
 
-
+    /**
+     * @return string
+     */
     function print()
     {
-        $output = ['***<没钱赚商店>购物清单***'];
-        $total = 0.0;
+        $output = $this->printHeader();
+        $output = array_merge($output, $this->printProductList());
+        $output = array_merge($output, $this->printAdditional());
+        $output = array_merge($output, $this->printFooter());
+        return implode(PHP_EOL, $output);
+    }
 
+    /**
+     * @param Product $product
+     * @param int $count
+     *
+     * @return StrategyInterface
+     */
+    protected function getStrategy(Product $product, $count)
+    {
+        $priorityStrategy = null;
+        $strategies = array_filter($this->strategies,
+            function (StrategyInterface $strategy) use ($product, $count, &$priorityStrategy) {
+                $isMatch = $strategy->isMatch($product, $count);
+                if ($isMatch && $strategy instanceof BuyGetFreeStrategy) {
+                    $priorityStrategy = $strategy;
+                }
+                return $isMatch;
+            }
+        );
+
+        return is_null($priorityStrategy) ? reset($strategies) : $priorityStrategy;
+    }
+
+    /**
+     * @return array
+     */
+    protected function printHeader()
+    {
+        return ['***<没钱赚商店>购物清单***'];
+    }
+
+    /**
+     * @return array
+     */
+    protected function printFooter()
+    {
+        $output = [];
+        $output[] = '----------------------';
+        $output[] = sprintf('总计：%.2f(元)', $this->calculateProductList());
+        $output[] = '**********************';
+        return $output;
+    }
+
+    /**
+     * @return array
+     */
+    protected function printProductList()
+    {
+        $output = [];
         foreach ($this->groups as $code => $count) {
             $product = ProductShelf::get($code);
-            $priorityStrategy = null;
-            $strategies = array_filter($this->strategies,
-                function (StrategyInterface $strategy) use ($product, $count, &$priorityStrategy) {
-                    $isMatch = $strategy->isMatch($product, $count);
-                    if ($isMatch && $strategy instanceof BuyGetFreeStrategy) {
-                        $priorityStrategy = $strategy;
-                    }
-                    return $isMatch;
-                }
-            );
-
-            $strategy = is_null($priorityStrategy) ? reset($strategies) : $priorityStrategy;
+            $strategy = $this->getStrategy($product, $count);
             $output[] = $strategy->printLine($product, $count);
-            $total += $strategy->calculatePrice($product, $count);
         }
+        return $output;
+    }
+
+    /**
+     * @return array
+     */
+    protected function printAdditional()
+    {
+        $output = [];
         foreach ($this->strategies as $strategy) {
             $additional = $strategy->printAdditional(
                 array_keys($this->groups),
@@ -75,13 +136,26 @@ class Printer
                 $output = array_merge($output, $additional);
             }
         }
-        $output[] = '----------------------';
-        $output[] = sprintf(self::SUM_TEMPLATE, $total);
-        $output[] = '**********************';
-
-        return implode(PHP_EOL, $output);
+        return $output;
     }
 
+    /**
+     * @return float
+     */
+    protected function calculateProductList()
+    {
+        $total = 0.0;
+        foreach ($this->groups as $code => $count) {
+            $product = ProductShelf::get($code);
+            $strategy = $this->getStrategy($product, $count);
+            $total += $strategy->calculatePrice($product, $count);
+        }
+        return $total;
+    }
+
+    /**
+     * @param array $groups
+     */
     protected function mergeCodes(array $groups)
     {
         foreach ($groups as $code => $count) {
@@ -93,6 +167,11 @@ class Printer
         }
     }
 
+    /**
+     * @param array $codes
+     *
+     * @return array
+     */
     protected function groupByCodes(array $codes)
     {
         $result = [];
@@ -106,6 +185,11 @@ class Printer
         return $result;
     }
 
+    /**
+     * @param array $items
+     *
+     * @return array
+     */
     protected function transformCodes(array $items)
     {
         $products = [];

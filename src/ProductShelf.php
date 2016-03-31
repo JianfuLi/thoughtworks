@@ -9,8 +9,15 @@
 namespace JeffLi\ThoughtWorks;
 
 
+/**
+ * Class ProductShelf
+ * @package JeffLi\ThoughtWorks
+ */
 class ProductShelf
 {
+    /**
+     * @return array
+     */
     static function all()
     {
         return [
@@ -21,7 +28,8 @@ class ProductShelf
     }
 
     /**
-     * @param $code
+     *
+     * @param string $code
      *
      * @return Product
      */
