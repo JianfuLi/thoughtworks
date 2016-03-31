@@ -9,6 +9,9 @@
 namespace JeffLi\ThoughtWorks;
 
 
+use JeffLi\ThoughtWorks\Strategy\DefaultStrategy;
+use JeffLi\ThoughtWorks\Strategy\StrategyInterface;
+
 class Printer
 {
     const ITEM_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)';
@@ -17,21 +20,20 @@ class Printer
     const SUM_TEMPLATE = '总计：%.2f(元)';
 
     protected $groups = [];
-    protected $buyTowGetOneFreeCodes = [];
-    protected $buy95OffCodes = [];
+    protected $strategies = [];
 
     /**
      * Printer constructor.
-     *
-     * @param array $buyTowGetOneFreeCodes
-     * @param array $buy95OffCodes
      */
-    public function __construct(array $buyTowGetOneFreeCodes = [], array $buy95OffCodes = [])
+    public function __construct()
     {
-        $this->buyTowGetOneFreeCodes = $buyTowGetOneFreeCodes;
-        $this->buy95OffCodes = $buy95OffCodes;
+        $this->strategies[] = new DefaultStrategy();
     }
 
+    function addStrategy(StrategyInterface $strategy)
+    {
+        array_unshift($this->strategies, $strategy);
+    }
 
     function append($json)
     {
@@ -45,93 +47,31 @@ class Printer
     {
         $output = ['***<没钱赚商店>购物清单***'];
         $total = 0.0;
-        $buyTwoGetOneFree = false;
+
         foreach ($this->groups as $code => $count) {
             $product = ProductShelf::get($code);
-            if ($this->isMatchBuyTwoGetOneFree($code, $count)) {
-                $buyTwoGetOneFree = true;
-                list($text, $price) = $this->printBuyTwoGetOneFree($product, $count);
-            } else {
-                if ($this->isMatch95Off($code)) {
-                    list($text, $price) = $this->print95Off($product, $count);
-                } else {
-                    list($text, $price) = $this->printNormal($product, $count);
+            foreach ($this->strategies as $strategy) {
+                if ($strategy->isMatch($product, $count)) {
+                    $output[] = $strategy->printLine($product, $count);
+                    $total += $strategy->calculatePrice($product, $count);
+                    break;
                 }
             }
-            $output[] = $text;
-            $total += $price;
         }
-        if ($buyTwoGetOneFree) {
-            $this->processBuyTwoGetOneFree($output);
+        foreach ($this->strategies as $strategy) {
+            $additional = $strategy->printAdditional(
+                array_keys($this->groups),
+                array_values($this->groups)
+            );
+            if (is_array($additional) && !empty($additional)) {
+                $output = array_merge($output, $additional);
+            }
         }
         $output[] = '----------------------';
         $output[] = sprintf(self::SUM_TEMPLATE, $total);
         $output[] = '**********************';
 
         return implode(PHP_EOL, $output);
-    }
-
-    protected function processBuyTwoGetOneFree(&$output)
-    {
-        $output[] = '----------------------';
-        $output[] = '买二赠一商品：';
-        foreach ($this->groups as $code => $count) {
-            $product = ProductShelf::get($code);
-            if (in_array($product->code, $this->buyTowGetOneFreeCodes) && $count > 2) {
-                $output[] = sprintf(self::BUY_TWO_GET_ONE_FREE_TEMPLATE, $product->name, 1, $product->unit);
-            }
-        }
-    }
-
-    protected function printBuyTwoGetOneFree($product, $count)
-    {
-        $price = $product->price * ($count - 1);
-        $output = sprintf(self::ITEM_TEMPLATE,
-            $product->name,
-            $count,
-            $product->unit,
-            $product->price,
-            $price
-        );
-        return [$output, $price];
-    }
-
-    protected function print95Off($product, $count)
-    {
-        $price = $product->price * $count * 0.95;
-        $off = $product->price * $count * 0.05;
-        $output = sprintf(self::BUY_95_OFF_TEMPLATE,
-            $product->name,
-            $count,
-            $product->unit,
-            $product->price,
-            $price,
-            $off
-        );
-        return [$output, $price];
-    }
-
-    protected function printNormal($product, $count)
-    {
-        $price = $product->price * $count;
-        $output = sprintf(self::ITEM_TEMPLATE,
-            $product->name,
-            $count,
-            $product->unit,
-            $product->price,
-            $price
-        );
-        return [$output, $price];
-    }
-
-    protected function isMatchBuyTwoGetOneFree($code, $count)
-    {
-        return in_array($code, $this->buyTowGetOneFreeCodes) && $count > 2;
-    }
-
-    protected function isMatch95Off($code)
-    {
-        return in_array($code, $this->buy95OffCodes);
     }
 
     protected function mergeCodes(array $groups)

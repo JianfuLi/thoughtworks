@@ -9,6 +9,8 @@
 namespace JeffLi\ThoughtWorks\Test;
 
 use JeffLi\ThoughtWorks\Printer;
+use JeffLi\ThoughtWorks\Strategy\BuyGetFreeStrategy;
+use JeffLi\ThoughtWorks\Strategy\DiscountStrategy;
 
 class PrinterTest extends \PHPUnit_Framework_TestCase
 {
@@ -103,7 +105,8 @@ class PrinterTest extends \PHPUnit_Framework_TestCase
 
     function testBuyTwoGetOneFree()
     {
-        $printer = new Printer(['ITEM000001', 'ITEM000002']);
+        $printer = new Printer();
+        $printer->addStrategy(new BuyGetFreeStrategy(['ITEM000001', 'ITEM000002'], 2, 1));
         $printer->append('["ITEM000001-3","ITEM000002-5"]');
         $this->assertEquals(
             '***<没钱赚商店>购物清单***' . PHP_EOL .
@@ -122,7 +125,8 @@ class PrinterTest extends \PHPUnit_Framework_TestCase
 
     function test95Off()
     {
-        $printer = new Printer([], ['ITEM000003']);
+        $printer = new Printer();
+        $printer->addStrategy(new DiscountStrategy(['ITEM000003'], 0.95));
         $printer->append('["ITEM000001-3","ITEM000003-2"]');
         $this->assertEquals(
             '***<没钱赚商店>购物清单***' . PHP_EOL .
