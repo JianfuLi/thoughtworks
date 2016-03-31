@@ -6,9 +6,9 @@
  * Date: 16/3/31
  * Time: 14:58
  */
-namespace JeffLi\ThoughtWorks\Strategy;
+namespace JeffLi\CashRegister\Strategy;
 
-use JeffLi\ThoughtWorks\Product;
+use JeffLi\CashRegister\Product;
 
 interface StrategyInterface
 {

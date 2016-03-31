@@ -6,15 +6,15 @@
  * Time: 13:27
  */
 
-namespace JeffLi\ThoughtWorks;
+namespace JeffLi\CashRegister;
 
-use JeffLi\ThoughtWorks\Strategy\BuyGetFreeStrategy;
-use JeffLi\ThoughtWorks\Strategy\StrategyInterface;
-use JeffLi\ThoughtWorks\Strategy\DefaultStrategy;
+use JeffLi\CashRegister\Strategy\BuyGetFreeStrategy;
+use JeffLi\CashRegister\Strategy\StrategyInterface;
+use JeffLi\CashRegister\Strategy\DefaultStrategy;
 
 /**
  * Class Printer
- * @package JeffLi\ThoughtWorks
+ * @package JeffLi\CashRegister
  */
 class Printer
 {

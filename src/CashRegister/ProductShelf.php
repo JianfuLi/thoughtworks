@@ -6,12 +6,12 @@
  * Time: 15:22
  */
 
-namespace JeffLi\ThoughtWorks;
+namespace JeffLi\CashRegister;
 
 
 /**
  * Class ProductShelf
- * @package JeffLi\ThoughtWorks
+ * @package JeffLi\CashRegister
  */
 class ProductShelf
 {

@@ -6,10 +6,10 @@
  * Time: 15:02
  */
 
-namespace JeffLi\ThoughtWorks\Strategy;
+namespace JeffLi\CashRegister\Strategy;
 
-use JeffLi\ThoughtWorks\Product;
-use JeffLi\ThoughtWorks\ProductShelf;
+use JeffLi\CashRegister\Product;
+use JeffLi\CashRegister\ProductShelf;
 
 class BuyGetFreeStrategy implements StrategyInterface
 {

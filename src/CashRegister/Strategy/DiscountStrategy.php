@@ -6,9 +6,9 @@
  * Time: 15:07
  */
 
-namespace JeffLi\ThoughtWorks\Strategy;
+namespace JeffLi\CashRegister\Strategy;
 
-use JeffLi\ThoughtWorks\Product;
+use JeffLi\CashRegister\Product;
 
 class DiscountStrategy implements StrategyInterface
 {

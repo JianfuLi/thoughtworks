@@ -6,11 +6,11 @@
  * Time: 13:28
  */
 
-namespace JeffLi\ThoughtWorks\Test;
+namespace JeffLi\CashRegister\Test;
 
-use JeffLi\ThoughtWorks\Printer;
-use JeffLi\ThoughtWorks\Strategy\BuyGetFreeStrategy;
-use JeffLi\ThoughtWorks\Strategy\DiscountStrategy;
+use JeffLi\CashRegister\Printer;
+use JeffLi\CashRegister\Strategy\BuyGetFreeStrategy;
+use JeffLi\CashRegister\Strategy\DiscountStrategy;
 
 class PrinterTest extends \PHPUnit_Framework_TestCase
 {
