@@ -37,10 +37,16 @@ class BuyGetFreeStrategy implements StrategyInterface
         $this->freeCount = $freeCount;
     }
 
+    protected function calculateFreeCount($count)
+    {
+        return floor($count / ($this->baseCount + $this->freeCount));
+    }
+
     function calculatePrice(Product $product, $count)
     {
+        $freeCount = $this->calculateFreeCount($count);
         if ($count > $this->baseCount) {
-            return $product->price * ($count - $this->freeCount);
+            return $product->price * ($count - $freeCount);
         } else {
             return $product->price * $count;
         }
@@ -72,7 +78,11 @@ class BuyGetFreeStrategy implements StrategyInterface
             $count = $counts[$i];
             $product = ProductShelf::get($code);
             if ($this->isMatch($product, $count)) {
-                $output[] = sprintf(self::DISCOUNTED_TEMPLATE, $product->name, $this->freeCount, $product->unit);
+                $output[] = sprintf(self::DISCOUNTED_TEMPLATE,
+                    $product->name,
+                    $this->calculateFreeCount($count),
+                    $product->unit
+                );
             }
         }
         return count($output) > 2 ? $output : [];

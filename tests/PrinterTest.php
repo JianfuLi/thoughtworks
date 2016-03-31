@@ -137,6 +137,47 @@ class PrinterTest extends \PHPUnit_Framework_TestCase
             '**********************'
             , $printer->print()
         );
-
     }
+
+    function testBuy2Get1FreeAnd95Off()
+    {
+        $printer = new Printer();
+        $printer->addStrategy(new BuyGetFreeStrategy(['ITEM000001', 'ITEM000002'], 2, 1));
+        $printer->addStrategy(new DiscountStrategy(['ITEM000003'], 0.95));
+        $printer->append('["ITEM000001-3","ITEM000002-3","ITEM000003-2"]');
+        $this->assertEquals(
+            '***<没钱赚商店>购物清单***' . PHP_EOL .
+            '名称：可口可乐，数量：3瓶，单价：3.00(元)，小计：6.00(元)' . PHP_EOL .
+            '名称：羽毛球，数量：3个，单价：5.00(元)，小计：10.00(元)' . PHP_EOL .
+            '名称：苹果，数量：2斤，单价：5.50(元)，小计：10.45(元)，节省0.55(元)' . PHP_EOL .
+            '----------------------' . PHP_EOL .
+            '买二赠一商品：' . PHP_EOL .
+            '名称：可口可乐，数量：1瓶' . PHP_EOL .
+            '名称：羽毛球，数量：1个' . PHP_EOL .
+            '----------------------' . PHP_EOL .
+            '总计：26.45(元)' . PHP_EOL .
+            '**********************'
+            , $printer->print()
+        );
+
+        $printer = new Printer();
+        $printer->addStrategy(new BuyGetFreeStrategy(['ITEM000001', 'ITEM000002'], 2, 1));
+        $printer->addStrategy(new DiscountStrategy(['ITEM000003'], 0.95));
+        $printer->append('["ITEM000001-3","ITEM000002-6","ITEM000003-2"]');
+        $this->assertEquals(
+            '***<没钱赚商店>购物清单***' . PHP_EOL .
+            '名称：可口可乐，数量：3瓶，单价：3.00(元)，小计：6.00(元)' . PHP_EOL .
+            '名称：羽毛球，数量：6个，单价：5.00(元)，小计：20.00(元)' . PHP_EOL .
+            '名称：苹果，数量：2斤，单价：5.50(元)，小计：10.45(元)，节省0.55(元)' . PHP_EOL .
+            '----------------------' . PHP_EOL .
+            '买二赠一商品：' . PHP_EOL .
+            '名称：可口可乐，数量：1瓶' . PHP_EOL .
+            '名称：羽毛球，数量：2个' . PHP_EOL .
+            '----------------------' . PHP_EOL .
+            '总计：36.45(元)' . PHP_EOL .
+            '**********************'
+            , $printer->print()
+        );
+    }
+    
 }
