@@ -48,38 +48,16 @@ class Printer
         $buyTwoGetOneFree = false;
         foreach ($this->groups as $code => $count) {
             $product = ProductShelf::get($code);
-            if (in_array($product->code, $this->buyTowGetOneFreeCodes) && $count > 2) {
+            if ($this->isMatchBuyTwoGetOneFree($code, $count)) {
                 $buyTwoGetOneFree = true;
-                $output[] = sprintf(self::ITEM_TEMPLATE,
-                    $product->name,
-                    $count,
-                    $product->unit,
-                    $product->price,
-                    $product->price * ($count - 1)
-                );
-                $total += $product->price * ($count - 1);
+                list($text, $price) = $this->printBuyTwoGetOneFree($product, $count);
+            } else if ($this->isMatch95Off($code)) {
+                list($text, $price) = $this->print95Off($product, $count);
             } else {
-                if (in_array($product->code, $this->buy95OffCodes)) {
-                    $output[] = sprintf(self::BUY_95_OFF_TEMPLATE,
-                        $product->name,
-                        $count,
-                        $product->unit,
-                        $product->price,
-                        $product->price * $count * 0.95,
-                        $product->price * $count * 0.05
-                    );
-                    $total += $product->price * $count * 0.95;
-                } else {
-                    $output[] = sprintf(self::ITEM_TEMPLATE,
-                        $product->name,
-                        $count,
-                        $product->unit,
-                        $product->price,
-                        $product->price * $count
-                    );
-                    $total += $product->price * $count;
-                }
+                list($text, $price) = $this->printNormal($product, $count);
             }
+            $output[] = $text;
+            $total += $price;
         }
         if ($buyTwoGetOneFree) {
             $output[] = '----------------------';
@@ -96,6 +74,57 @@ class Printer
         $output[] = '**********************';
 
         return implode(PHP_EOL, $output);
+    }
+
+    protected function printBuyTwoGetOneFree($product, $count)
+    {
+        $price = $product->price * ($count - 1);
+        $output = sprintf(self::ITEM_TEMPLATE,
+            $product->name,
+            $count,
+            $product->unit,
+            $product->price,
+            $price
+        );
+        return [$output, $price];
+    }
+
+    protected function print95Off($product, $count)
+    {
+        $price = $product->price * $count * 0.95;
+        $off = $product->price * $count * 0.05;
+        $output = sprintf(self::BUY_95_OFF_TEMPLATE,
+            $product->name,
+            $count,
+            $product->unit,
+            $product->price,
+            $price,
+            $off
+        );
+        return [$output, $price];
+    }
+
+    protected function printNormal($product, $count)
+    {
+        $price = $product->price * $count;
+        $output = sprintf(self::ITEM_TEMPLATE,
+            $product->name,
+            $count,
+            $product->unit,
+            $product->price,
+            $price
+        );
+        return [$output, $price];
+    }
+
+    protected function isMatchBuyTwoGetOneFree($code, $count)
+    {
+        return in_array($code, $this->buyTowGetOneFreeCodes) && $count > 2;
+    }
+
+    protected function isMatch95Off($code)
+    {
+        return in_array($code, $this->buy95OffCodes);
     }
 
     protected function mergeCodes(array $groups)
