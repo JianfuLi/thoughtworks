@@ -13,19 +13,23 @@ class Printer
 {
     const ITEM_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)';
     const BUY_TWO_GET_ONE_FREE_TEMPLATE = '名称：%s，数量：%d%s';
+    const BUY_95_OFF_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)，节省%.2f(元)';
     const SUM_TEMPLATE = '总计：%.2f(元)';
 
     protected $groups = [];
     protected $buyTowGetOneFreeCodes = [];
+    protected $buy95OffCodes = [];
 
     /**
      * Printer constructor.
      *
      * @param array $buyTowGetOneFreeCodes
+     * @param array $buy95OffCodes
      */
-    public function __construct(array $buyTowGetOneFreeCodes = [])
+    public function __construct(array $buyTowGetOneFreeCodes = [], array $buy95OffCodes = [])
     {
         $this->buyTowGetOneFreeCodes = $buyTowGetOneFreeCodes;
+        $this->buy95OffCodes = $buy95OffCodes;
     }
 
 
@@ -55,14 +59,26 @@ class Printer
                 );
                 $total += $product->price * ($count - 1);
             } else {
-                $output[] = sprintf(self::ITEM_TEMPLATE,
-                    $product->name,
-                    $count,
-                    $product->unit,
-                    $product->price,
-                    $product->price * $count
-                );
-                $total += $product->price * $count;
+                if (in_array($product->code, $this->buy95OffCodes)) {
+                    $output[] = sprintf(self::BUY_95_OFF_TEMPLATE,
+                        $product->name,
+                        $count,
+                        $product->unit,
+                        $product->price,
+                        $product->price * $count * 0.95,
+                        $product->price * $count * 0.05
+                    );
+                    $total += $product->price * $count * 0.95;
+                } else {
+                    $output[] = sprintf(self::ITEM_TEMPLATE,
+                        $product->name,
+                        $count,
+                        $product->unit,
+                        $product->price,
+                        $product->price * $count
+                    );
+                    $total += $product->price * $count;
+                }
             }
         }
         if ($buyTwoGetOneFree) {
