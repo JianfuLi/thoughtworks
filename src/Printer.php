@@ -16,6 +16,17 @@ class Printer
     const SUM_TEMPLATE = '总计：%.2f(元)';
 
     protected $groups = [];
+    protected $buyTowGetOneFreeCodes = [];
+
+    /**
+     * Printer constructor.
+     *
+     * @param array $buyTowGetOneFreeCodes
+     */
+    public function __construct(array $buyTowGetOneFreeCodes = [])
+    {
+        $this->buyTowGetOneFreeCodes = $buyTowGetOneFreeCodes;
+    }
 
 
     function append($json)
@@ -33,7 +44,7 @@ class Printer
         $buyTwoGetOneFree = false;
         foreach ($this->groups as $code => $count) {
             $product = ProductShelf::get($code);
-            if (in_array($product->code, ['ITEM000001', 'ITEM000002']) && $count > 2) {
+            if (in_array($product->code, $this->buyTowGetOneFreeCodes) && $count > 2) {
                 $buyTwoGetOneFree = true;
                 $output[] = sprintf(self::ITEM_TEMPLATE,
                     $product->name,
