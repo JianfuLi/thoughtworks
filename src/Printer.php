@@ -9,6 +9,7 @@
 namespace JeffLi\ThoughtWorks;
 
 
+use JeffLi\ThoughtWorks\Strategy\BuyGetFreeStrategy;
 use JeffLi\ThoughtWorks\Strategy\DefaultStrategy;
 use JeffLi\ThoughtWorks\Strategy\StrategyInterface;
 
@@ -50,13 +51,20 @@ class Printer
 
         foreach ($this->groups as $code => $count) {
             $product = ProductShelf::get($code);
-            foreach ($this->strategies as $strategy) {
-                if ($strategy->isMatch($product, $count)) {
-                    $output[] = $strategy->printLine($product, $count);
-                    $total += $strategy->calculatePrice($product, $count);
-                    break;
+            $priorityStrategy = null;
+            $strategies = array_filter($this->strategies,
+                function (StrategyInterface $strategy) use ($product, $count, &$priorityStrategy) {
+                    $isMatch = $strategy->isMatch($product, $count);
+                    if ($isMatch && $strategy instanceof BuyGetFreeStrategy) {
+                        $priorityStrategy = $strategy;
+                    }
+                    return $isMatch;
                 }
-            }
+            );
+
+            $strategy = is_null($priorityStrategy) ? reset($strategies) : $priorityStrategy;
+            $output[] = $strategy->printLine($product, $count);
+            $total += $strategy->calculatePrice($product, $count);
         }
         foreach ($this->strategies as $strategy) {
             $additional = $strategy->printAdditional(
