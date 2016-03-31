@@ -12,6 +12,7 @@ namespace JeffLi\ThoughtWorks;
 class Printer
 {
     const ITEM_TEMPLATE = '名称：%s，数量：%d%s，单价：%.2f(元)，小计：%.2f(元)';
+    const BUY_TWO_GET_ONE_FREE_TEMPLATE = '名称：%s，数量：%d%s';
     const SUM_TEMPLATE = '总计：%.2f(元)';
 
     protected $groups = [];
@@ -29,16 +30,39 @@ class Printer
     {
         $output = ['***<没钱赚商店>购物清单***'];
         $total = 0.0;
+        $buyTwoGetOneFree = false;
         foreach ($this->groups as $code => $count) {
             $product = ProductShelf::get($code);
-            $output[] = sprintf(self::ITEM_TEMPLATE,
-                $product->name,
-                $count,
-                $product->unit,
-                $product->price,
-                $product->price * $count
-            );
-            $total += $product->price * $count;
+            if (in_array($product->code, ['ITEM000001', 'ITEM000002']) && $count > 2) {
+                $buyTwoGetOneFree = true;
+                $output[] = sprintf(self::ITEM_TEMPLATE,
+                    $product->name,
+                    $count,
+                    $product->unit,
+                    $product->price,
+                    $product->price * ($count - 1)
+                );
+                $total += $product->price * ($count - 1);
+            } else {
+                $output[] = sprintf(self::ITEM_TEMPLATE,
+                    $product->name,
+                    $count,
+                    $product->unit,
+                    $product->price,
+                    $product->price * $count
+                );
+                $total += $product->price * $count;
+            }
+        }
+        if ($buyTwoGetOneFree) {
+            $output[] = '----------------------';
+            $output[] = '买二赠一商品：';
+            foreach ($this->groups as $code => $count) {
+                $product = ProductShelf::get($code);
+                if (in_array($product->code, ['ITEM000001', 'ITEM000002']) && $count > 2) {
+                    $output[] = sprintf(self::BUY_TWO_GET_ONE_FREE_TEMPLATE, $product->name, 1, $product->unit);
+                }
+            }
         }
         $output[] = '----------------------';
         $output[] = sprintf(self::SUM_TEMPLATE, $total);
